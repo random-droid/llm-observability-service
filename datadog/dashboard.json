@@ -1,0 +1,122 @@
+{
+  "title": "LLM Code Review - RAG Observability",
+  "description": "Observability dashboard for AI-powered code review with RAG pipeline metrics",
+  "layout_type": "ordered",
+  "widgets": [
+    {
+      "definition": {
+        "title": "Overview KPIs",
+        "type": "group",
+        "background_color": "vivid_blue",
+        "show_title": true,
+        "layout_type": "ordered",
+        "widgets": [
+          {"definition": {"title": "Total Reviews", "type": "query_value", "requests": [{"response_format": "scalar", "queries": [{"data_source": "metrics", "name": "query1", "query": "sum:llm.reviews.total{*}.as_count()", "aggregator": "sum"}], "formulas": [{"formula": "query1"}]}], "autoscale": true, "precision": 0}},
+          {"definition": {"title": "Avg Cost per Review", "type": "query_value", "requests": [{"response_format": "scalar", "queries": [{"data_source": "metrics", "name": "query1", "query": "avg:llm.cost.per_review{*}", "aggregator": "avg"}], "formulas": [{"formula": "query1"}]}], "autoscale": true, "precision": 4, "custom_unit": "$"}},
+          {"definition": {"title": "Success Rate", "type": "query_value", "requests": [{"response_format": "scalar", "queries": [{"data_source": "metrics", "name": "reviews", "query": "sum:llm.reviews.total{*}.as_count()", "aggregator": "sum"}, {"data_source": "metrics", "name": "errors", "query": "sum:llm.errors{*}.as_count()", "aggregator": "sum"}], "formulas": [{"formula": "(reviews - errors) / reviews * 100"}]}], "autoscale": true, "precision": 1, "custom_unit": "%"}},
+          {"definition": {"title": "Error Count", "type": "query_value", "requests": [{"response_format": "scalar", "queries": [{"data_source": "metrics", "name": "query1", "query": "sum:llm.errors{*}.as_count()", "aggregator": "sum"}], "formulas": [{"formula": "query1"}]}], "autoscale": true, "precision": 0}}
+        ]
+      }
+    },
+    {
+      "definition": {
+        "title": "Pipeline Performance",
+        "type": "group",
+        "background_color": "vivid_green",
+        "show_title": true,
+        "layout_type": "ordered",
+        "widgets": [
+          {"definition": {"title": "LLM Generation Time (seconds)", "type": "timeseries", "requests": [{"response_format": "timeseries", "queries": [{"data_source": "metrics", "name": "llm", "query": "avg:llm.duration.seconds{*}"}], "formulas": [{"formula": "llm"}], "display_type": "bars", "style": {"palette": "orange"}}], "yaxis": {"include_zero": true}}},
+          {"definition": {"title": "RAG Retrieval Latency (ms)", "type": "timeseries", "requests": [{"response_format": "timeseries", "queries": [{"data_source": "metrics", "name": "retrieval", "query": "avg:rag.retrieval.duration_seconds{*}"}], "formulas": [{"formula": "retrieval * 1000", "alias": "Retrieval (ms)"}], "display_type": "bars"}], "yaxis": {"include_zero": true}}},
+          {"definition": {"title": "Avg LLM Duration", "type": "query_value", "requests": [{"response_format": "scalar", "queries": [{"data_source": "metrics", "name": "llm", "query": "avg:llm.duration.seconds{*}", "aggregator": "avg"}], "formulas": [{"formula": "llm"}]}], "autoscale": true, "precision": 2, "custom_unit": "s"}},
+          {"definition": {"title": "Avg RAG Retrieval Duration", "type": "query_value", "requests": [{"response_format": "scalar", "queries": [{"data_source": "metrics", "name": "retrieval", "query": "avg:rag.retrieval.duration_seconds{*}", "aggregator": "avg"}], "formulas": [{"formula": "retrieval * 1000"}]}], "autoscale": true, "precision": 0, "custom_unit": "ms"}}
+        ]
+      }
+    },
+    {
+      "definition": {
+        "title": "Cost Analysis",
+        "type": "group",
+        "background_color": "vivid_yellow",
+        "show_title": true,
+        "layout_type": "ordered",
+        "widgets": [
+          {"definition": {"title": "Cost per Review by Repository", "type": "timeseries", "requests": [{"response_format": "timeseries", "queries": [{"data_source": "metrics", "name": "query1", "query": "avg:llm.cost.per_review{*} by {repo}"}], "formulas": [{"formula": "query1"}], "display_type": "bars", "style": {"palette": "warm"}}], "yaxis": {"include_zero": true}}},
+          {"definition": {"title": "Cumulative Cost by Repository", "type": "timeseries", "requests": [{"response_format": "timeseries", "queries": [{"data_source": "metrics", "name": "query1", "query": "cumsum(sum:llm.cost.per_review{*} by {repo}.as_count())"}], "formulas": [{"formula": "query1"}], "display_type": "area", "style": {"palette": "warm"}}], "yaxis": {"include_zero": true}}}
+        ]
+      }
+    },
+    {
+      "definition": {
+        "title": "LLM Token Metrics",
+        "type": "group",
+        "background_color": "vivid_orange",
+        "show_title": true,
+        "layout_type": "ordered",
+        "widgets": [
+          {"definition": {"title": "Token Usage: Prompt vs Completion", "type": "timeseries", "requests": [{"response_format": "timeseries", "queries": [{"data_source": "metrics", "name": "prompt", "query": "avg:llm.tokens.prompt{*}"}, {"data_source": "metrics", "name": "completion", "query": "avg:llm.tokens.completion{*}"}], "formulas": [{"formula": "prompt", "alias": "Prompt Tokens"}, {"formula": "completion", "alias": "Completion Tokens"}], "display_type": "bars"}], "yaxis": {"include_zero": true}}},
+          {"definition": {"title": "Context Utilization % (per PR)", "type": "timeseries", "requests": [{"response_format": "timeseries", "queries": [{"data_source": "metrics", "name": "query1", "query": "avg:llm.context.utilization_pct{*}"}], "formulas": [{"formula": "query1"}], "display_type": "bars", "style": {"palette": "orange"}}], "yaxis": {"include_zero": true, "max": "100"}}}
+        ]
+      }
+    },
+    {
+      "definition": {
+        "title": "RAG Retrieval",
+        "type": "group",
+        "background_color": "vivid_purple",
+        "show_title": true,
+        "layout_type": "ordered",
+        "widgets": [
+          {"definition": {"title": "RAG Retrievals Count", "type": "timeseries", "requests": [{"response_format": "timeseries", "queries": [{"data_source": "metrics", "name": "count", "query": "sum:rag.retrieval.total{*}.as_count()"}], "formulas": [{"formula": "count", "alias": "Retrievals"}], "display_type": "bars", "style": {"palette": "purple"}}], "yaxis": {"include_zero": true}}},
+          {"definition": {"title": "RAG Retrieval Quality (Max Similarity)", "type": "timeseries", "requests": [{"response_format": "timeseries", "queries": [{"data_source": "metrics", "name": "query1", "query": "avg:rag.retrieval.max_similarity{*}"}], "formulas": [{"formula": "query1"}], "display_type": "bars", "style": {"palette": "purple"}}], "yaxis": {"include_zero": true, "max": "1"}}},
+          {"definition": {"title": "Chunks Retrieved (per event)", "type": "timeseries", "requests": [{"response_format": "timeseries", "queries": [{"data_source": "metrics", "name": "query1", "query": "avg:rag.retrieval.chunks{*}"}], "formulas": [{"formula": "query1"}], "display_type": "bars"}], "yaxis": {"include_zero": true}}},
+          {"definition": {"title": "Context Tokens (per event)", "type": "timeseries", "requests": [{"response_format": "timeseries", "queries": [{"data_source": "metrics", "name": "query1", "query": "avg:rag.retrieval.context_tokens{*}"}], "formulas": [{"formula": "query1"}], "display_type": "bars", "style": {"palette": "purple"}}], "yaxis": {"include_zero": true}}}
+        ]
+      }
+    },
+    {
+      "definition": {
+        "title": "RAG Indexing & Embeddings",
+        "type": "group",
+        "background_color": "vivid_pink",
+        "show_title": true,
+        "layout_type": "ordered",
+        "widgets": [
+          {"definition": {"title": "RAG Indexing Events", "type": "timeseries", "requests": [{"response_format": "timeseries", "queries": [{"data_source": "metrics", "name": "count", "query": "sum:rag.indexing.total{*}.as_count()"}], "formulas": [{"formula": "count", "alias": "Indexing Events"}], "display_type": "bars", "style": {"palette": "pink"}}], "yaxis": {"include_zero": true}}},
+          {"definition": {"title": "Files & Chunks (per event)", "type": "timeseries", "requests": [{"response_format": "timeseries", "queries": [{"data_source": "metrics", "name": "files", "query": "avg:rag.indexing.files{*}"}, {"data_source": "metrics", "name": "chunks", "query": "avg:rag.indexing.chunks{*}"}], "formulas": [{"formula": "files", "alias": "Files Indexed"}, {"formula": "chunks", "alias": "Chunks Created"}], "display_type": "bars"}], "yaxis": {"include_zero": true}}},
+          {"definition": {"title": "Embedding API Calls", "type": "timeseries", "requests": [{"response_format": "timeseries", "queries": [{"data_source": "metrics", "name": "success", "query": "sum:rag.embedding.api_calls{success:true}.as_count()"}, {"data_source": "metrics", "name": "failed", "query": "sum:rag.embedding.api_calls{success:false}.as_count()"}], "formulas": [{"formula": "success", "alias": "Success"}, {"formula": "failed", "alias": "Failed"}], "display_type": "bars"}], "yaxis": {"include_zero": true}}}
+        ]
+      }
+    },
+    {
+      "definition": {
+        "title": "Security & Errors",
+        "type": "group",
+        "background_color": "vivid_red",
+        "show_title": true,
+        "layout_type": "ordered",
+        "widgets": [
+          {"definition": {"title": "Security Events by Type", "type": "timeseries", "requests": [{"response_format": "timeseries", "queries": [{"data_source": "metrics", "name": "query1", "query": "sum:security.events{*} by {event_type}.as_count()"}], "formulas": [{"formula": "query1"}], "display_type": "bars"}], "yaxis": {"include_zero": true}}},
+          {"definition": {"title": "Error Rate %", "type": "timeseries", "requests": [{"response_format": "timeseries", "queries": [{"data_source": "metrics", "name": "errors", "query": "sum:llm.errors{*}.as_count()"}, {"data_source": "metrics", "name": "reviews", "query": "sum:llm.reviews.total{*}.as_count()"}], "formulas": [{"formula": "errors / reviews * 100", "alias": "Error Rate %"}], "display_type": "line", "style": {"palette": "red"}}], "yaxis": {"include_zero": true}}}
+        ]
+      }
+    },
+    {
+      "definition": {
+        "title": "PR Stats",
+        "type": "group",
+        "background_color": "gray",
+        "show_title": true,
+        "layout_type": "ordered",
+        "widgets": [
+          {"definition": {"title": "PR Files Changed", "type": "timeseries", "requests": [{"response_format": "timeseries", "queries": [{"data_source": "metrics", "name": "files", "query": "avg:pr.files_changed{*}"}], "formulas": [{"formula": "files", "alias": "Files Changed"}], "display_type": "bars", "style": {"palette": "cool"}}], "yaxis": {"include_zero": true}}},
+          {"definition": {"title": "PR Total Lines Changed", "type": "timeseries", "requests": [{"response_format": "timeseries", "queries": [{"data_source": "metrics", "name": "changes", "query": "avg:pr.total_changes{*}"}], "formulas": [{"formula": "changes", "alias": "Lines Changed"}], "display_type": "bars", "style": {"palette": "orange"}}], "yaxis": {"include_zero": true}}}
+        ]
+      }
+    }
+  ],
+  "template_variables": [
+    {"name": "repo", "prefix": "repo", "default": "*"},
+    {"name": "env", "prefix": "env", "default": "production"}
+  ]
+}
