@@ -33,6 +33,11 @@ class Settings:
         "TARGET_EXTENSIONS", "py,js,ts,tsx,jsx,java,go,rs,rb,php,c,cpp,h"
     ).split(",")
 
+    # BigQuery
+    BQ_DATASET: str = os.getenv("BQ_DATASET", "llm_observability")
+    BQ_TABLE: str = os.getenv("BQ_TABLE", "metrics")
+    ENABLE_BQ_METRICS: bool = os.getenv("ENABLE_BQ_METRICS", "false").lower() == "true"
+
 @lru_cache()
 def get_settings() -> Settings:
     return Settings()

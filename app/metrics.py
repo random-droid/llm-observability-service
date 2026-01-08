@@ -8,6 +8,7 @@ Supports two modes:
 
 from datadog import initialize, api, statsd
 from app.config import get_settings
+from app import bigquery_metrics
 from typing import List, Dict, Any
 import logging
 import os
@@ -37,6 +38,7 @@ def init_datadog():
         use_http = os.getenv('DD_USE_HTTP_API', 'auto').lower()
 
         # Auto-detect: use HTTP API if no agent available
+        # Auto-detect: use HTTP API if no agent available
         if use_http == 'auto':
             has_socket = os.path.exists(socket_path)
             has_agent_host = bool(agent_host)
@@ -44,6 +46,9 @@ def init_datadog():
         else:
             _use_http_api = use_http == 'true'
 
+        # Initialize BigQuery metrics (if enabled)
+        bigquery_metrics.init_bigquery()
+        
         if _use_http_api:
             # HTTP API mode - for Cloud Run (no agent needed)
             logger.info("Using Datadog HTTP API mode (no agent required)")
@@ -136,6 +141,9 @@ def _send_metrics(metrics: List[Dict[str, Any]]):
     if not _initialized:
         logger.warning("Datadog not initialized, skipping metrics")
         return
+
+    # Send to BigQuery (fire and forget, ideally async but keeping simple for now)
+    bigquery_metrics.insert_metrics(metrics)
 
     if _use_http_api:
         _send_metrics_http(metrics)

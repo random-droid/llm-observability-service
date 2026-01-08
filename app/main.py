@@ -38,6 +38,7 @@ from app.metrics import (
     track_rag_indexing,
     track_rag_retrieval
 )
+from app.rag import retriever
 from app.github_client import GitHubClient, verify_webhook_signature
 
 # Configure logging
