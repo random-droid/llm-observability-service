@@ -88,11 +88,15 @@ async def lifespan(app: FastAPI):
     if not settings.GCP_PROJECT:
         logger.error("GCP_PROJECT not set!")
     else:
-        vertexai.init(
-            project=settings.GCP_PROJECT,
-            location=settings.GCP_LOCATION
-        )
-        logger.info(f"Vertex AI initialized: {settings.GCP_PROJECT}/{settings.GCP_LOCATION}")
+        try:
+            vertexai.init(
+                project=settings.GCP_PROJECT,
+                location=settings.GCP_LOCATION
+            )
+            logger.info(f"Vertex AI initialized: {settings.GCP_PROJECT}/{settings.GCP_LOCATION}")
+        except Exception as e:
+            logger.error(f"Failed to initialize Vertex AI: {e}")
+
 
     # Initialize Datadog
     init_datadog()
