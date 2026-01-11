@@ -4,7 +4,12 @@
 set -e
 
 # Configuration - update these values
-PROJECT_ID="${GCP_PROJECT:-your-project-id}"
+# Load .env file if it exists
+if [ -f .env ]; then
+    export $(cat .env | grep -v '^#' | xargs)
+fi
+
+PROJECT_ID="${GCP_PROJECT:-steel-earth-470201-g1}"
 REGION="${GCP_LOCATION:-us-central1}"
 SERVICE_NAME="llm-code-review"
 IMAGE_NAME="gcr.io/${PROJECT_ID}/${SERVICE_NAME}"
@@ -59,7 +64,8 @@ gcloud run deploy ${SERVICE_NAME} \
     --set-secrets "DD_API_KEY=dd-api-key:latest" \
     --set-secrets "DD_APP_KEY=dd-app-key:latest" \
     --set-secrets "GITHUB_TOKEN=github-token:latest" \
-    --set-secrets "GITHUB_WEBHOOK_SECRET=github-webhook-secret:latest"
+    --set-secrets "GITHUB_WEBHOOK_SECRET=github-webhook-secret:latest" \
+    --set-env-vars "ENABLE_BQ_METRICS=true"
 
 # Get the service URL
 SERVICE_URL=$(gcloud run services describe ${SERVICE_NAME} --region ${REGION} --format 'value(status.url)')
